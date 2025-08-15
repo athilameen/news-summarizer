@@ -2,13 +2,19 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-COPY requirements.txt ./
-COPY src/ ./src/
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip3 install -r requirements.txt
+# Create .streamlit directory with permissions
+RUN mkdir -p /app/.streamlit
 
-EXPOSE 8501
+# Add config to prevent permission + telemetry issues
+COPY .streamlit /app/.streamlit
 
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
+# Copy the rest of the app
+COPY . .
 
-ENTRYPOINT ["streamlit", "run", "src/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+EXPOSE 7860
+
+CMD ["streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0"]
