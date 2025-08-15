@@ -1,24 +1,23 @@
-# Use official Python image
 FROM python:3.9-slim
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
-
-# Set work directory
 WORKDIR /app
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt .
+# Install system dependencies first
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
+# Install Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files
+# Copy app files
 COPY . .
 
-# Expose port 7860 (required by Hugging Face Spaces)
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:7860/_stcore/health || exit 1
+
 EXPOSE 7860
 
-# Run the application
 CMD ["streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0"]

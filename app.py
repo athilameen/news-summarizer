@@ -1,61 +1,57 @@
-import os
-import sys
-import builtins
-
-# --- Critical: Must be first before any Streamlit imports ---
-os.environ["STREAMLIT_GLOBAL_METRICS"] = "0"  # Completely disable metrics
-os.environ["STREAMLIT_CONFIG_DIR"] = "/tmp/.streamlit"
-os.environ["STREAMLIT_CACHE_DIR"] = "/tmp/.streamlit-cache"
-os.environ["STREAMLIT_BROWSER_GATHERUSAGESTATS"] = "false"
-os.environ["HOME"] = "/tmp"
-
-# Create required directories
-os.makedirs("/tmp/.streamlit", exist_ok=True)
-os.makedirs("/tmp/.streamlit-cache", exist_ok=True)
-
-# Create minimal config file
-CONFIG_PATH = "/tmp/.streamlit/config.toml"
-if not os.path.exists(CONFIG_PATH):
-    with open(CONFIG_PATH, "w") as f:
-        f.write("""
-[server]
-enableXsrfProtection = false
-enableCORS = false
-headless = true
-port = 7860  # Hugging Face requires port 7860
-
-[browser]
-gatherUsageStats = false
-""")
-
-# Save the original os.makedirs function
-original_makedirs = os.makedirs
-
-# Define our safe directory creation function
-def safe_makedirs(path, mode=0o777, exist_ok=False):
-    # Redirect any attempts to create /.streamlit to /tmp/.streamlit
-    if path.startswith('/.streamlit'):
-        path = path.replace('/.streamlit', '/tmp/.streamlit', 1)
-    return original_makedirs(path, mode, exist_ok=exist_ok)
-
-# Apply the monkey patch
-os.makedirs = safe_makedirs
-
 import streamlit as st
 from transformers import pipeline
+import time
 
-summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+# Configure Streamlit
+st.set_page_config(page_title="📰 News Summarizer", layout="wide")
 
-st.title("📰 News Summarizer")
-st.write("Paste a news article below and get a short summary!")
+# Health check
+if "ready" not in st.session_state:
+    st.session_state.ready = False
 
-article_text = st.text_area("Enter your article text here", height=300)
+@st.cache_resource(show_spinner=False)
+def load_model():
+    """Cache the model to avoid reloading"""
+    try:
+        # Use a smaller model for Hugging Face Spaces
+        return pipeline("summarization", model="facebook/bart-large-cnn")
+    except Exception as e:
+        st.error(f"Model loading failed: {str(e)}")
+        st.stop()
 
-if st.button("Summarize"):
-    if article_text.strip():
+def main():
+    st.title("📰 News Summarizer")
+    st.write("Paste a news article below and get a short summary!")
+
+    article_text = st.text_area("Enter your article text here", height=300)
+
+    if st.button("Summarize"):
+        if not article_text.strip():
+            st.warning("Please paste some article text first.")
+            return
+
         with st.spinner("Summarizing..."):
-            summary = summarizer(article_text, max_length=130, min_length=30, do_sample=False)
-        st.subheader("Summary")
-        st.write(summary[0]['summary_text'])
-    else:
-        st.warning("Please paste some article text first.")
+            try:
+                start_time = time.time()
+                model = load_model()
+                summary = model(
+                    article_text,
+                    max_length=130,
+                    min_length=30,
+                    do_sample=False
+                )
+                st.subheader("Summary")
+                st.write(summary[0]['summary_text'])
+                st.info(f"Processing time: {time.time() - start_time:.2f} seconds")
+            except Exception as e:
+                st.error(f"Error during summarization: {str(e)}")
+
+# Initialize only when needed
+if not st.session_state.ready:
+    with st.spinner("Loading model (first time may take a few minutes)..."):
+        load_model()
+        st.session_state.ready = True
+        st.experimental_rerun()
+
+if __name__ == "__main__":
+    main()
