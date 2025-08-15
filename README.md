@@ -1,14 +1,15 @@
 ---
-title: Streamlit Template Space
+title: News Summarizer
 emoji: 🚀
 colorFrom: red
 colorTo: red
 sdk: docker
 app_port: 8501
 tags:
-  - streamlit
+- streamlit
 pinned: false
-short_description: Streamlit template space
+short_description: Summarize news articles from a URL or pasted text
+license: mit
 ---
 
 # Welcome to Streamlit!
