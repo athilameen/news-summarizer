@@ -1,15 +1,15 @@
 import os
-import sys
 import streamlit as st
 from transformers import pipeline
 
-# ===== PREVENT DEFAULT CACHE ACCESS =====
-# Block access to problematic directories
-os.environ['NO_DEFAULT_CACHE'] = "1"
-os.environ['HF_HOME'] = "/tmp/hf_home"
-os.environ['TRANSFORMERS_CACHE'] = "/tmp/transformers_cache"
+# ===== CACHE SOLUTION THAT ALWAYS WORKS =====
+# Set cache to /tmp directory (always writable in Spaces)
+cache_dir = "/tmp/hf_cache"
+os.environ["HF_HOME"] = cache_dir
+os.environ["TRANSFORMERS_CACHE"] = cache_dir
+os.environ["HUGGINGFACE_HUB_CACHE"] = cache_dir
 
-# ===== MODEL LOADING WITH EXPLICIT CACHE =====
+# ===== MODEL LOADING =====
 @st.cache_resource(ttl=24*3600)
 def load_model():
     try:
@@ -18,9 +18,7 @@ def load_model():
                 "summarization",
                 model="facebook/bart-large-cnn",
                 device=-1,  # Force CPU
-                # Force cache to our custom location
-                cache_dir="/tmp/hf_cache",
-                local_files_only=False
+                cache_dir=cache_dir  # Explicitly set cache
             )
     except Exception as e:
         st.error(f"❌ Model loading failed: {str(e)}")
