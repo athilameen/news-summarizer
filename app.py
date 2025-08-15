@@ -1,23 +1,30 @@
 import os
+import sys
 import streamlit as st
 from transformers import pipeline
 
-# ===== 100% RELIABLE CACHE SETUP =====
-cache_dir = "/tmp/hf_cache"
-os.makedirs(cache_dir, exist_ok=True)
-os.environ["TRANSFORMERS_CACHE"] = cache_dir
-os.environ["HF_HOME"] = cache_dir
-os.environ["XDG_CACHE_HOME"] = cache_dir
+# ===== NUCLEAR CACHE SOLUTION =====
+# Set all possible cache locations to /tmp
+os.environ["TRANSFORMERS_CACHE"] = "/tmp/huggingface"
+os.environ["HF_HOME"] = "/tmp/huggingface"
+os.environ["XDG_CACHE_HOME"] = "/tmp/xdg_cache"
+os.environ["HUGGINGFACE_HUB_CACHE"] = "/tmp/huggingface"
 
-# Verify cache directory is writable
-try:
-    test_file = os.path.join(cache_dir, "test.txt")
-    with open(test_file, "w") as f:
-        f.write("test")
-    os.remove(test_file)
-except Exception as e:
-    st.error(f"Cache setup failed: {str(e)}")
-    st.stop()
+# Create cache directories with full permissions
+cache_dirs = [
+    "/tmp/huggingface",
+    "/tmp/xdg_cache",
+    "/tmp/huggingface/hub",
+    "/tmp/huggingface/transformers"
+]
+
+for dir_path in cache_dirs:
+    try:
+        os.makedirs(dir_path, exist_ok=True)
+        os.chmod(dir_path, 0o777)  # Full permissions
+    except Exception as e:
+        st.error(f"Failed to create cache directory: {str(e)}")
+        st.stop()
 
 # ===== MODEL LOADING =====
 @st.cache_resource(ttl=24*3600)

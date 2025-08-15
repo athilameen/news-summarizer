@@ -1,10 +1,11 @@
 FROM python:3.9-slim
 
-# Create cache directory with FULL permissions
-RUN mkdir -p /tmp/hf_cache && \
+# Create cache directories with FULL permissions at build time
+RUN mkdir -p /tmp/huggingface/hub && \
+    mkdir -p /tmp/xdg_cache && \
     chmod -R 777 /tmp
 
-# Install essential build tools
+# Install minimal build tools
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc python3-dev && \
     rm -rf /var/lib/apt/lists/*
