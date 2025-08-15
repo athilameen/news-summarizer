@@ -12,5 +12,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Create the official cache directory with proper permissions
+RUN mkdir -p /home/user/.cache/huggingface && \
+    chmod -R 777 /home/user/.cache
+
 EXPOSE 7860
 CMD ["streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0"]

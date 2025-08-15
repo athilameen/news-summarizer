@@ -2,9 +2,9 @@ import os
 import streamlit as st
 from transformers import pipeline
 
-# ===== CACHE SOLUTION THAT ALWAYS WORKS =====
-# Set cache to /tmp directory (always writable in Spaces)
-cache_dir = "/tmp/hf_cache"
+# ===== OFFICIAL HUGGING FACE SPACES CACHE SOLUTION =====
+# Use the special cache directory provided by Spaces
+cache_dir = "/home/user/.cache/huggingface"
 os.environ["HF_HOME"] = cache_dir
 os.environ["TRANSFORMERS_CACHE"] = cache_dir
 os.environ["HUGGINGFACE_HUB_CACHE"] = cache_dir
@@ -27,7 +27,7 @@ def load_model():
 # ===== MAIN APP =====
 def main():
     st.title("📰 News Summarizer")
-    st.info("This app uses a temporary cache that resets after each session")
+    st.info("This app uses Hugging Face Spaces' built-in cache system")
     
     article_text = st.text_area("Paste article here", height=300)
     
