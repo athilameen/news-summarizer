@@ -1,13 +1,11 @@
 import streamlit as st
 from transformers import pipeline
 
-# Load summarization pipeline
 summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
 
 st.title("📰 News Summarizer")
 st.write("Paste a news article below and get a short summary!")
 
-# Text input
 article_text = st.text_area("Enter your article text here", height=300)
 
 if st.button("Summarize"):
