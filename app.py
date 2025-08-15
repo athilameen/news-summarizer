@@ -54,7 +54,7 @@ def main():
     st.title("📰 News Summarizer")
     st.caption("Uses Spaces’ persistent `/data` cache. CPU-only build.")
 
-    # Optional: helpful for debugging Spaces images
+    # Optional:: helpful for debugging Spaces images
     try:
         import transformers, huggingface_hub
         st.caption(f"transformers={transformers.__version__}, hub={huggingface_hub.__version__}")
