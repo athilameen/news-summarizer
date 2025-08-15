@@ -1,6 +1,7 @@
 [server]
 headless = true
-enableCORS = false
+enableCORS = true  # Must be true when XSRF protection is enabled
+enableXsrfProtection = true
 port = 7860
 address = "0.0.0.0"
 

@@ -1,19 +1,22 @@
+import os
 import streamlit as st
 from transformers import pipeline
 import time
 
-# Configure Streamlit
-st.set_page_config(page_title="📰 News Summarizer", layout="wide")
+# Set Hugging Face cache to writable directory
+os.environ["TRANSFORMERS_CACHE"] = "/tmp/.cache/huggingface/hub"
+os.environ["HF_HOME"] = "/tmp/.cache/huggingface"
 
-# Health check
-if "ready" not in st.session_state:
-    st.session_state.ready = False
+# Create cache directory if it doesn't exist
+os.makedirs(os.environ["TRANSFORMERS_CACHE"], exist_ok=True)
+
+# Streamlit configuration
+st.set_page_config(page_title="📰 News Summarizer", layout="wide")
 
 @st.cache_resource(show_spinner=False)
 def load_model():
     """Cache the model to avoid reloading"""
     try:
-        # Use a smaller model for Hugging Face Spaces
         return pipeline("summarization", model="facebook/bart-large-cnn")
     except Exception as e:
         st.error(f"Model loading failed: {str(e)}")
@@ -32,7 +35,6 @@ def main():
 
         with st.spinner("Summarizing..."):
             try:
-                start_time = time.time()
                 model = load_model()
                 summary = model(
                     article_text,
@@ -42,16 +44,8 @@ def main():
                 )
                 st.subheader("Summary")
                 st.write(summary[0]['summary_text'])
-                st.info(f"Processing time: {time.time() - start_time:.2f} seconds")
             except Exception as e:
                 st.error(f"Error during summarization: {str(e)}")
-
-# Initialize only when needed
-if not st.session_state.ready:
-    with st.spinner("Loading model (first time may take a few minutes)..."):
-        load_model()
-        st.session_state.ready = True
-        st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
