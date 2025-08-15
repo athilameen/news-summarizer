@@ -1,8 +1,6 @@
 FROM python:3.9-slim
 
-# No directory creation needed
-
-# Install minimal dependencies
+# Install only absolutely essential dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc python3-dev && \
     rm -rf /var/lib/apt/lists/*
